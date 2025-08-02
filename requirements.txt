@@ -1,0 +1,6 @@
+platform
+numpy
+trimesh
+meshio
+networkx
+lxml
