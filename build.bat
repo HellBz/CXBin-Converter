@@ -10,7 +10,7 @@ echo [📦] Installing PyInstaller...
 pip install pyinstaller >nul 2>&1
 
 echo [🚧] Building cxbin_converter.exe...
-pyinstaller --onefile --icon=icon.ico --name=cxbin_converter --version-file version.txt ^
+pyinstaller --onefile --icon=icon.ico --name=cxbin_converter ^
   --hidden-import=networkx --hidden-import=lxml ^
   cxbin_converter.py
 
@@ -29,3 +29,4 @@ if exist dist\cxbin_converter.exe (
 )
 
 pause
+
