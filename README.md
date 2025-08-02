@@ -19,7 +19,7 @@ A simple CLI tool to convert `.cxbin` files (Creality Model Format) into common 
 ## 🚀 Installation (Python Environment)
 
 ```bash
-git clone https://github.com/your-user-name/cxbin_converter.git
+git clone https://github.com/HellBz/cxbin_converter.git
 cd cxbin_converter
 pip install -r requirements.txt
 ```
