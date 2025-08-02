@@ -8,7 +8,7 @@ A simple CLI tool to convert `.cxbin` files (Creality Model Format) into common 
 
 - Supports `.cxbin` mesh files from Creality
 - Exports to: `STL`, `OBJ`, `PLY`, `GLB`, `GLTF`, `OFF`, `DAE`, `3MF`
-- Auto fallback to `.stl` if no output is specified
+- Uses .stl as fallback format if neither output is specified nor fallback.txt is present.
 - CLI with ASCII header and detailed debug output
 - Drag and drop support on Windows
 - Optional standalone build via PyInstaller for Windows/Linux
