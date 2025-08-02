@@ -10,13 +10,20 @@ echo [📦] Installing PyInstaller...
 pip install pyinstaller >nul 2>&1
 
 echo [🚧] Building cxbin_converter.exe...
-pyinstaller --onefile --icon=icon.ico --name=cxbin_converter ^
+pyinstaller --onefile --icon=icon.ico --name=cxbin_converter --version-file version.txt ^
   --hidden-import=networkx --hidden-import=lxml ^
   cxbin_converter.py
 
 echo.
 if exist dist\cxbin_converter.exe (
     echo ✅ Build successful: dist\cxbin_converter.exe
+	
+    if exist fallback.txt (
+        copy /Y fallback.txt dist\ >nul
+        echo 📄 Copied fallback.txt to dist\
+    ) else (
+        echo ⚠️ fallback.txt not found – skipping copy.
+    )
 ) else (
     echo ❌ Build failed!
 )

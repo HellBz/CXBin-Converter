@@ -27,6 +27,7 @@ $PYTHON -m pip install pyinstaller
 echo "🚧 Building cxbin_converter..."
 pyinstaller --onefile \
     --name=cxbin_converter \
+	--version-file version.txt \
     --hidden-import=networkx \
     --hidden-import=lxml \
     cxbin_converter.py
@@ -35,6 +36,13 @@ echo ""
 
 if [[ -f "dist/cxbin_converter" ]]; then
     echo "✅ Build successful: dist/cxbin_converter"
+	
+    if [[ -f "fallback.txt" ]]; then
+        cp fallback.txt dist/
+        echo "📄 Copied fallback.txt to dist/"
+    else
+        echo "⚠️ fallback.txt not found – skipping copy."
+    fi
 else
     echo "❌ Build failed."
 fi
