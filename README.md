@@ -108,3 +108,4 @@ MIT License – Free to use for personal and commercial purposes.
 ## 🧠 Note
 
 This tool is based on the official implementation from CrealityOfficial/cxbin (version 2.0.0), reimplemented in Python for easier cross-platform use.
+https://github.com/CrealityOfficial/cxbin/tree/version-2.0.0
