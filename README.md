@@ -1,18 +1,26 @@
 # 🧊 CXBin-Converter
 
-A simple CLI tool to convert `.cxbin` files (Creality Model Format) into common 3D formats like `.stl`, `.obj`, `.ply`, `.gltf`, and more. Supports both Python environments and standalone EXE for Windows.
+A powerful CLI tool to convert `.cxbin` files (Creality Model Format) into many common 3D formats like
+
+`.stl`, `.obj`, `.ply`, `.gltf`, `.glb`, `.dae`, `.3mf` and more.  
+
+Supports batch processing, ZIP packaging for multi-file formats, JSON API output, 
+
+and runs both in Python environments and as standalone EXE.
 
 ---
 
 ## 📦 Features
 
-- Supports `.cxbin` mesh files from Creality
-- Exports to: `STL`, `OBJ`, `PLY`, `GLB`, `GLTF`, `OFF`, `DAE`, `3MF`
-- Uses .stl as fallback format if neither output is specified nor fallback.txt is present.
-- CLI with ASCII header and detailed debug output
-- Drag and drop support on Windows
-- Optional standalone build via PyInstaller for Windows/Linux
-- No third-party libraries from Creality required
+- Reads `.cxbin` mesh files from Creality slicers & devices
+- Exports via **trimesh** and **meshio** to a wide range of formats
+- Supports multi-file formats (`OBJ`, `GLTF`) with optional ZIP output
+- Batch mode for folders (with optional recursion)
+- JSON output for API-based integration (`--json`)
+- Optional inclusion of raw geometry data in JSON (`--json-geometry`)
+- Custom output directory and naming templates
+- Drag-and-drop support on Windows
+- Buildable to standalone EXE or Linux binary with **PyInstaller**
 
 ---
 
@@ -28,41 +36,78 @@ pip install -r requirements.txt
 
 ## ⚙️ Usage
 
-### ➤ Using Python
+### ➤ Minimal Example
 
 ```bash
-# Minimal usage
 python cxbin_converter.py model.cxbin
-
-# With desired export format
-python cxbin_converter.py model.cxbin output.obj
-
-# Or e.g. output.glb, output.ply, output.3mf ...
 ```
 
-Supported formats:
-```
-stl, ply, obj, glb, gltf, off, dae, 3mf
-```
+### ➤ Export to specific format
 
-### ➤ As Executable (Windows/Linux)
-
-#### Windows:
 ```bash
-build.bat
-# Result: dist\cxbin_converter.exe
+python cxbin_converter.py model.cxbin --format stl
+python cxbin_converter.py model.cxbin --format obj --zip
+python cxbin_converter.py model.cxbin --format gltf --zip-only
 ```
 
-#### Linux:
+### ➤ Custom output directory and name
+
 ```bash
-chmod +x build.sh
-./build.sh
-# Result: dist/cxbin_converter
+python cxbin_converter.py model.cxbin --format stl -o ./exports --output-name export_{stem}
+```
+`{stem}` = input filename without extension  
+`{fmt}` = target format
+
+### ➤ Batch convert all `.cxbin` in folder
+
+```bash
+python cxbin_converter.py ./input_folder --format stl --recursive
+```
+
+### ➤ JSON mode (API integration)
+
+```bash
+python cxbin_converter.py model.cxbin --format obj --json
+```
+
+Include geometry arrays in JSON:
+```bash
+python cxbin_converter.py model.cxbin --format obj --json --json-geometry
 ```
 
 ---
 
-## 🧪 Sample Output
+## 📜 Parameters
+
+| Parameter                 | Short | Description |
+|---------------------------|-------|-------------|
+| `input`                   |       | Input file or folder |
+| `--format`                | `-f`  | Output format (e.g. `stl`, `obj`, `ply`, `gltf`, `glb`, `off`, `dae`, `3mf`, …) |
+| `--zip`                   |       | Zip multi-file outputs after export |
+| `--zip-only`              |       | Zip multi-file outputs and remove folder |
+| `--recursive`             | `-r`  | Search subfolders (only in folder input mode) |
+| `--list-formats`           |       | Show all supported export formats |
+| `--json`                  |       | Output results as JSON (no ASCII banner) |
+| `--json-geometry`         |       | Include vertices, faces, UVs in JSON |
+| `--output-dir`            | `-o`  | Custom output folder |
+| `--output-name`           |       | Custom base name, supports `{stem}` and `{fmt}` |
+
+---
+
+## 📂 Supported Formats
+
+### Trimesh exporters:
+`3mf, amf, dae, glb, gltf, obj, off, ply, stl, vrml, x3d`
+
+### Meshio fallback:
+`amf, med, msh, obj, off, ply, stl, vtk, vtp, vtu, x3d, xdmf`
+
+Multi-file formats: `gltf, obj`  
+Single-file formats: `3mf, amf, dae, glb, off, ply, stl, vrml, x3d`
+
+---
+
+## 🧪 Sample CLI Output
 
 ```bash
    ______  ______  _              ____                          _            
@@ -73,7 +118,7 @@ chmod +x build.sh
 
 ✅ Successfully exported:
    🔸 Format:        STL
-   🔸 Target:        cube.stl
+   🔸 Target:        exports/cube.stl
    🔸 Vertices:      8
    🔸 Faces:         12
    🔸 Compressed:    428 Bytes
@@ -84,28 +129,41 @@ chmod +x build.sh
 
 ## 🔧 Build Requirements
 
-- Python ≥ 3.7
-- Optional: `pyinstaller` for standalone builds
+- Python ≥ 3.8
+- Required:  
+  ```bash
+  pip install numpy trimesh Pillow
+  ```
+- Optional (for more formats):  
+  ```bash
+  pip install meshio lxml pygltflib h5py networkx
+  ```
 
-### Manual requirements:
+---
+
+## 🛠 Build Standalone
+
+### Windows:
 ```bash
-pip install numpy trimesh meshio networkx lxml
+pyinstaller --onefile cxbin_converter.py
 ```
+Result: `dist/cxbin_converter.exe`
+
+### Linux:
+```bash
+pyinstaller --onefile cxbin_converter.py
+```
+Result: `dist/cxbin_converter`
 
 ---
 
 ## 🔒 License
 
-MIT License – Free to use for personal and commercial purposes.
+MIT License – Free for personal and commercial use.
 
 ---
 
 ## 👤 Author
 
-**Stefan**, Dresden → Karlsruhe  
+**Stefan** – Dresden → Karlsruhe  
 2025 – Open Source Enthusiast 🛠️
-
-## 🧠 Note
-
-This tool is based on the official implementation from [CrealityOfficial/cxbin](https://github.com/CrealityOfficial/cxbin/tree/version-2.0.0) (version 2.0.0), reimplemented in Python for easier cross-platform use.
-
