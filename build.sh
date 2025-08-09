@@ -13,7 +13,7 @@ else
 fi
 
 # Check for pip
-if ! $PYTHON -m pip --version &>/dev/null; then
+if ! pip --version &>/dev/null; then
     echo "❌ pip not found. Please install pip (e.g. $PYTHON -m ensurepip)"
     exit 1
 fi
@@ -25,11 +25,8 @@ echo "📦 Installing PyInstaller..."
 $PYTHON -m pip install pyinstaller
 
 echo "🚧 Building cxbin_converter..."
-pyinstaller --onefile \
+pyinstaller --icon=icon.ico --onefile \
     --name=cxbin_converter \
-	--version-file version.txt \
-    --hidden-import=networkx \
-    --hidden-import=lxml \
     cxbin_converter/cxbin_converter.py
 
 echo ""
