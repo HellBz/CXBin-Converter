@@ -11,7 +11,6 @@ pip install pyinstaller >nul 2>&1
 
 echo [🚧] Building cxbin_converter.exe...
 pyinstaller --onefile --icon=icon.ico --name=cxbin_converter ^
-  --hidden-import=networkx --hidden-import=lxml ^
   cxbin_converter/cxbin_converter.py
 
 echo.
