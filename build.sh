@@ -30,7 +30,7 @@ pyinstaller --onefile \
 	--version-file version.txt \
     --hidden-import=networkx \
     --hidden-import=lxml \
-    cxbin_converter.py
+    cxbin_converter/cxbin_converter.py
 
 echo ""
 
