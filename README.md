@@ -147,11 +147,19 @@ Single-file formats: `3mf, amf, dae, glb, off, ply, stl, vrml, x3d`
 ```bash
 pyinstaller --onefile cxbin_converter.py
 ```
+or use
+```bash
+build.bat
+```
 Result: `dist/cxbin_converter.exe`
 
 ### Linux:
 ```bash
 pyinstaller --onefile cxbin_converter.py
+```
+or use
+```bash
+build.sh
 ```
 Result: `dist/cxbin_converter`
 
