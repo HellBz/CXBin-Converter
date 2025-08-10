@@ -65,6 +65,9 @@ jobs:
 
       - name: Normalize filenames
         run: |
+          set -e
+          RAW="${GITHUB_REF_NAME}"      # e.g. v1.5
+          VERSION="${RAW#v}"            # strip leading "v" -> 1.5
           mkdir -p rel
           # pick Linux binary and rename
           if [ -f "release/cxbin_converter" ]; then
@@ -72,14 +75,14 @@ jobs:
           else
             # sometimes artifacts are nested; find it
             LINUX_BIN="$(find release -maxdepth 2 -type f -name 'cxbin_converter' | head -n1 || true)"
-            if [ -n "$LINUX_BIN" ]; then cp "$LINUX_BIN" rel/cxbin_converter-linux-x86_64; fi
+            if [ -n "$LINUX_BIN" ]; then cp "$LINUX_BIN" "rel/cxbin_converter-linux-x86_64-${VERSION}"; fi
           fi
           # pick Windows binary and rename
           if [ -f "release/cxbin_converter.exe" ]; then
             mv release/cxbin_converter.exe rel/cxbin_converter-windows-x86_64.exe
           else
             WIN_BIN="$(find release -maxdepth 2 -type f -name 'cxbin_converter.exe' | head -n1 || true)"
-            if [ -n "$WIN_BIN" ]; then cp "$WIN_BIN" rel/cxbin_converter-windows-x86_64.exe; fi
+            if [ -n "$WIN_BIN" ]; then cp "$WIN_BIN" "rel/cxbin_converter-windows-x86_64-${VERSION}.exe"; fi
           fi
           ls -l rel
 
