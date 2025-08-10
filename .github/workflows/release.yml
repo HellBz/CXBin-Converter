@@ -1,0 +1,95 @@
+name: Build & Release cxbin_converter
+
+on:
+  push:
+    tags:
+      - 'v*'        # run on version tags like v1.2.3
+  workflow_dispatch: # allow manual runs
+
+permissions:
+  contents: write    # needed to create releases
+
+jobs:
+  build:
+    name: Build binaries (Linux & Windows)
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      # Linux build (calls your bin/build.sh which uses PyInstaller with --distpath bin)
+      - name: Build on Linux
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pyinstaller
+          bash bin/build.sh
+        shell: bash
+
+      # Windows build (calls your bin/build.bat which drops exe into bin\)
+      - name: Build on Windows
+        if: matrix.os == 'windows-latest'
+        run: bin\build.bat
+        shell: cmd
+
+      # Upload artifacts from bin/
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.os }}-artifacts
+          path: |
+            bin/cxbin_converter*
+          if-no-files-found: error
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+
+      - name: Normalize filenames
+        run: |
+          mkdir -p rel
+          # pick Linux binary and rename
+          if [ -f "release/cxbin_converter" ]; then
+            mv release/cxbin_converter rel/cxbin_converter-linux-x86_64
+          else
+            # sometimes artifacts are nested; find it
+            LINUX_BIN="$(find release -maxdepth 2 -type f -name 'cxbin_converter' | head -n1 || true)"
+            if [ -n "$LINUX_BIN" ]; then cp "$LINUX_BIN" rel/cxbin_converter-linux-x86_64; fi
+          fi
+          # pick Windows binary and rename
+          if [ -f "release/cxbin_converter.exe" ]; then
+            mv release/cxbin_converter.exe rel/cxbin_converter-windows-x86_64.exe
+          else
+            WIN_BIN="$(find release -maxdepth 2 -type f -name 'cxbin_converter.exe' | head -n1 || true)"
+            if [ -n "$WIN_BIN" ]; then cp "$WIN_BIN" rel/cxbin_converter-windows-x86_64.exe; fi
+          fi
+          ls -l rel
+
+      - name: Create release and upload files
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: false
+          files: |
+            rel/cxbin_converter-linux-x86_64
+            rel/cxbin_converter-windows-x86_64.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
