@@ -92,7 +92,7 @@ jobs:
           draft: false
           prerelease: false
             files: |
-              rel/cxbin_converter-linux-x86_64-${{ github.ref_name#v }}
-              rel/cxbin_converter-windows-x86_64-${{ github.ref_name#v }}.exe
+              rel/cxbin_converter-linux-x86_64-*
+              rel/cxbin_converter-windows-x86_64-*.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
