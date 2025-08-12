@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# URL zur libpython3.11.a aus deinem Release Asset
-LIBPYTHON_URL="https://github.com/HellBz/CXBin-Converter/releases/download/1/libpython3.11.a"
-
 echo "[🛠️] Checking Python & Pip..."
 if ! python3 --version >/dev/null 2>&1; then
     echo "❌ Python not found"
@@ -14,15 +11,13 @@ if ! pip3 --version >/dev/null 2>&1; then
     exit 1
 fi
 
-echo "[⬇️] Downloading libpython3.11.a..."
-curl -L -o libpython3.11.a "$LIBPYTHON_URL"
-echo "✅ libpython3.11.a downloaded."
-
 echo "[📦] Installing requirements..."
 pip3 install -r requirements.txt >/dev/null 2>&1
 
-echo "[📦] Installing PyInstaller..."
-pip3 install pyinstaller >/dev/null 2>&1
+echo "[📦] Installing PyInstaller from source..."
+pip3 uninstall -y pyinstaller >/dev/null 2>&1 || true
+pip3 cache purge >/dev/null 2>&1 || true
+pip3 install --no-binary=pyinstaller --no-cache-dir pyinstaller==6.15.0 >/dev/null 2>&1
 
 SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -38,7 +33,6 @@ echo "[🚧] Building cxbin_converter..."
 pyinstaller "$ENTRY" \
     --name cxbin_converter \
     --onefile \
-    --static-libpython \
     --icon "$ICON" \
     --distpath "$DIST" \
     --workpath "$WORK" \
