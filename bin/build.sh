@@ -1,33 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "[🛠️] Checking Python & Pip..."
-if ! python3 --version >/dev/null 2>&1; then
-    echo "❌ Python not found"
-    exit 1
-fi
-if ! pip3 --version >/dev/null 2>&1; then
-    echo "❌ Pip not found"
-    exit 1
-fi
-
-echo "[📦] Installing requirements..."
-pip3 install -r requirements.txt >/dev/null 2>&1
-
-echo "[📦] Installing PyInstaller..."
-pip3 install pyinstaller >/dev/null 2>&1
-
+PYTHON_VERSION="3.11.9"
 SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-
-# Define PyInstaller args
 ENTRY="$REPO_ROOT/cxbin_converter/cxbin_converter.py"
 ICON="$SCRIPT_DIR/icon.ico"
 DIST="$SCRIPT_DIR"
 WORK="$SCRIPT_DIR/build"
 SPEC="$SCRIPT_DIR"
 
-echo "[🚧] Building cxbin_converter..."
+echo "[🛠️] Installing build dependencies..."
+sudo apt-get update
+sudo apt-get install -y build-essential wget libffi-dev zlib1g-dev libssl-dev \
+    libbz2-dev libsqlite3-dev libreadline-dev libncursesw5-dev \
+    libgdbm-dev liblzma-dev uuid-dev
+
+echo "[⬇️] Downloading & building Python $PYTHON_VERSION (static)..."
+cd /tmp
+wget "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSION.tgz"
+tar xzf "Python-$PYTHON_VERSION.tgz"
+cd "Python-$PYTHON_VERSION"
+./configure --enable-optimizations --disable-shared
+make -j$(nproc)
+sudo make altinstall
+
+echo "[📦] Installing PyInstaller..."
+pip3.$(echo $PYTHON_VERSION | cut -d. -f1,2) install --upgrade pip
+pip3.$(echo $PYTHON_VERSION | cut -d. -f1,2) install pyinstaller
+
+echo "[🚧] Building cxbin_converter with static libpython..."
 pyinstaller "$ENTRY" \
     --name cxbin_converter \
     --onefile \
@@ -42,15 +44,9 @@ pyinstaller "$ENTRY" \
 echo
 if [ -f "$DIST/cxbin_converter" ]; then
     echo "✅ Build successful: $DIST/cxbin_converter"
-
-    # Cleanup: remove .spec file and build folder
-    if [ -f "$SPEC/cxbin_converter.spec" ]; then
-        rm -f "$SPEC/cxbin_converter.spec"
-    fi
-    if [ -d "$WORK" ]; then
-        rm -rf "$WORK"
-    fi
-    echo "🧹 Cleanup done: Removed build folder and .spec file."
+    rm -f "$SPEC/cxbin_converter.spec"
+    rm -rf "$WORK"
+    echo "🧹 Cleanup done."
 else
     echo "❌ Build failed!"
     exit 1
