@@ -14,6 +14,7 @@ fi
 echo "[📦] Installing requirements..."
 pip3 install -r requirements.txt >/dev/null 2>&1
 
+e
 echo "[📦] Removing old PyInstaller..."
 pip3 uninstall -y pyinstaller >/dev/null 2>&1 || true
 pip3 cache purge >/dev/null 2>&1 || true
@@ -30,11 +31,6 @@ wget -q https://files.pythonhosted.org/packages/source/p/pyinstaller/pyinstaller
 echo "[📦] Extracting PyInstaller..."
 tar xvf pyinstaller-6.15.0.tar.gz >/dev/null 2>&1
 cd pyinstaller-6.15.0
-
-echo "[⚙️] Building & installing PyInstaller from source..."
-pip3 install . >/dev/null 2>&1
-cd "$OLDPWD"
-rm -rf "$TMPDIR"
 
 SCRIPT_DIR="$(cd -- "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
