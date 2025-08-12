@@ -31,6 +31,7 @@ echo "[🚧] Building cxbin_converter..."
 pyinstaller "$ENTRY" \
     --name cxbin_converter \
     --onefile \
+    --static-libpython \
     --icon "$ICON" \
     --distpath "$DIST" \
     --workpath "$WORK" \
