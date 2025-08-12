@@ -24,7 +24,7 @@ set "SPEC=%SCRIPT_DIR%\"
 
 REM Build directly into bin (EXE in bin, temp in bin\build)
 echo [🚧] Building cxbin_converter.exe...
-pyinstaller "%ENTRY%" --name cxbin_converter --onefile --icon "%ICON%" --distpath "%DIST%" --workpath "%WORK%" --specpath "%SPEC%" --clean --log-level=DEBUG
+pyinstaller "%ENTRY%" --name cxbin_converter --onefile --static-libpython --icon "%ICON%" --distpath "%DIST%" --workpath "%WORK%" --specpath "%SPEC%" --clean --log-level=DEBUG
 
 echo.
 if exist "%DIST%\cxbin_converter.exe" (
@@ -41,3 +41,4 @@ if exist "%DIST%\cxbin_converter.exe" (
 
 pause
 endlocal
+
