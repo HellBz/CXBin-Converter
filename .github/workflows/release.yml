@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, self-hosted]
+        os: [ubuntu-latest, windows-latest]
 
     steps:
       - name: Checkout
@@ -39,7 +39,7 @@ jobs:
 
       # Windows build (calls your bin/build.bat which drops exe into bin\)
       - name: Build on Windows
-        if: matrix.os == 'self-hosted'
+        if: matrix.os == 'windows-latest'
         run: bin\build.bat
         shell: cmd
 
