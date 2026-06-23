@@ -184,9 +184,20 @@ fn model_xml(mesh: &CxbinMesh) -> String {
 }
 
 /// Render a simple 2D orthographic thumbnail of the mesh into a PNG.
+/// The model is rotated to give an isometric-style view before projection.
 fn render_thumbnail(mesh: &CxbinMesh, width: u32, height: u32) -> Vec<u8> {
     let mut img = ImageBuffer::from_pixel(width, height, Rgba([240, 240, 240, 255]));
-    let (min, max) = bounding_box(mesh);
+
+    // Rotate vertices around X and Y for a 3/4 view.
+    let angle_x = -30f32.to_radians();
+    let angle_y = 45f32.to_radians();
+    let rotated: Vec<[f32; 3]> = mesh
+        .vertices
+        .iter()
+        .map(|v| rotate_y(rotate_x(*v, angle_x), angle_y))
+        .collect();
+
+    let (min, max) = bounding_box_coords(&rotated);
     let size = [
         (max[0] - min[0]).max(0.001),
         (max[1] - min[1]).max(0.001),
@@ -196,7 +207,7 @@ fn render_thumbnail(mesh: &CxbinMesh, width: u32, height: u32) -> Vec<u8> {
     let max_dim = size[0].max(size[1]).max(size[2]);
     let scale = ((width as f32 - 20.0) / max_dim).min((height as f32 - 20.0) / max_dim);
 
-    // Project to screen: x horizontal, y vertical (flip y), ignore z
+    // Project to screen: x horizontal, y vertical (flip y)
     let project = |v: &[f32; 3]| {
         let x = (v[0] - center[0]) * scale + (width as f32) / 2.0;
         let y = (height as f32) / 2.0 - (v[1] - center[1]) * scale;
@@ -205,9 +216,9 @@ fn render_thumbnail(mesh: &CxbinMesh, width: u32, height: u32) -> Vec<u8> {
 
     // Draw wireframe edges
     for f in &mesh.faces {
-        let a = project(&mesh.vertices[f[0] as usize]);
-        let b = project(&mesh.vertices[f[1] as usize]);
-        let c = project(&mesh.vertices[f[2] as usize]);
+        let a = project(&rotated[f[0] as usize]);
+        let b = project(&rotated[f[1] as usize]);
+        let c = project(&rotated[f[2] as usize]);
         draw_line(&mut img, a, b, Rgba([59, 130, 246, 255]));
         draw_line(&mut img, b, c, Rgba([59, 130, 246, 255]));
         draw_line(&mut img, c, a, Rgba([59, 130, 246, 255]));
@@ -219,10 +230,30 @@ fn render_thumbnail(mesh: &CxbinMesh, width: u32, height: u32) -> Vec<u8> {
     out
 }
 
-fn bounding_box(mesh: &CxbinMesh) -> ([f32; 3], [f32; 3]) {
+fn rotate_x(v: [f32; 3], angle: f32) -> [f32; 3] {
+    let c = angle.cos();
+    let s = angle.sin();
+    [
+        v[0],
+        v[1] * c - v[2] * s,
+        v[1] * s + v[2] * c,
+    ]
+}
+
+fn rotate_y(v: [f32; 3], angle: f32) -> [f32; 3] {
+    let c = angle.cos();
+    let s = angle.sin();
+    [
+        v[0] * c + v[2] * s,
+        v[1],
+        -v[0] * s + v[2] * c,
+    ]
+}
+
+fn bounding_box_coords(vertices: &[[f32; 3]]) -> ([f32; 3], [f32; 3]) {
     let mut min = [f32::MAX; 3];
     let mut max = [f32::MIN; 3];
-    for v in &mesh.vertices {
+    for v in vertices {
         for i in 0..3 {
             if v[i] < min[i] {
                 min[i] = v[i];
