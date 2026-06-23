@@ -1,18 +1,24 @@
+pub mod amf;
 pub mod mesh;
 pub mod obj;
 pub mod off;
 pub mod ply;
 pub mod stl;
 pub mod threemf;
+pub mod vrml;
+pub mod x3d;
 
 use std::path::Path;
 
 use crate::cxbin::CxbinMesh;
+use amf::AmfExporter;
 use obj::ObjExporter;
 use off::OffExporter;
 use ply::PlyExporter;
 use stl::StlExporter;
 use threemf::ThreeMFExporter;
+use vrml::VrmlExporter;
+use x3d::X3dExporter;
 
 pub use mesh::Exporter;
 
@@ -23,6 +29,9 @@ pub fn exporter_for(format: &str) -> Option<Box<dyn Exporter>> {
         "obj" => Some(Box::new(ObjExporter)),
         "off" => Some(Box::new(OffExporter)),
         "3mf" => Some(Box::new(ThreeMFExporter)),
+        "amf" => Some(Box::new(AmfExporter)),
+        "vrml" => Some(Box::new(VrmlExporter)),
+        "x3d" => Some(Box::new(X3dExporter)),
         _ => None,
     }
 }
@@ -35,5 +44,5 @@ pub fn export_mesh(mesh: &CxbinMesh, format: &str, output_path: &Path) -> anyhow
 }
 
 pub fn supported_formats() -> Vec<&'static str> {
-    vec!["stl", "ply", "obj", "off", "3mf"]
+    vec!["stl", "ply", "obj", "off", "3mf", "amf", "vrml", "x3d"]
 }

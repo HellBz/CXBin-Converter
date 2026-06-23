@@ -26,7 +26,7 @@ interface ConversionResult {
   error?: string;
 }
 
-const FORMATS = ["stl", "ply", "obj", "off", "3mf"];
+const FORMATS = ["stl", "ply", "obj", "off", "3mf", "amf", "vrml", "x3d"];
 
 export default function App() {
   const [files, setFiles] = useState<string[]>([]);
