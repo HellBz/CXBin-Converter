@@ -49,7 +49,7 @@ jobs:
           tagName: ${{ github.ref_name }}
           releaseName: 'CXBin-Converter ${{ github.ref_name }}'
           releaseBody: 'Automated release for ${{ github.ref_name }}.'
-          releaseDraft: true
+          releaseDraft: false
           prerelease: false
 
       - name: Upload raw Windows executable
