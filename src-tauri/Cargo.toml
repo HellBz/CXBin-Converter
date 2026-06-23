@@ -1,5 +1,5 @@
 [package]
-name = "cxbin-converter-tauri"
+name = "cxbin-converter"
 version = "2.0.0"
 description = "Tauri rewrite of the CXBin converter"
 authors = ["Stefan"]

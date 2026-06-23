@@ -51,23 +51,23 @@ npm run tauri:dev
 
 ```bash
 # Minimal
-./src-tauri/target/release/cxbin-converter-tauri.exe model.cxbin
+./src-tauri/target/release/cxbin-converter.exe model.cxbin
 
 # Format wählen
-./src-tauri/target/release/cxbin-converter-tauri.exe model.cxbin --format stl
-./src-tauri/target/release/cxbin-converter-tauri.exe model.cxbin --format 3mf
-./src-tauri/target/release/cxbin-converter-tauri.exe model.cxbin --format obj
+./src-tauri/target/release/cxbin-converter.exe model.cxbin --format stl
+./src-tauri/target/release/cxbin-converter.exe model.cxbin --format 3mf
+./src-tauri/target/release/cxbin-converter.exe model.cxbin --format obj
 
 # Ausgabeordner und Name
-./src-tauri/target/release/cxbin-converter-tauri.exe model.cxbin --format ply -o ./exports
-./src-tauri/target/release/cxbin-converter-tauri.exe model.cxbin --format ply --output-name export_{stem}
+./src-tauri/target/release/cxbin-converter.exe model.cxbin --format ply -o ./exports
+./src-tauri/target/release/cxbin-converter.exe model.cxbin --format ply --output-name export_{stem}
 
 # Batch (optional rekursiv)
-./src-tauri/target/release/cxbin-converter-tauri.exe ./input_folder --format stl --recursive
+./src-tauri/target/release/cxbin-converter.exe ./input_folder --format stl --recursive
 
 # JSON API
-./src-tauri/target/release/cxbin-converter-tauri.exe model.cxbin --format obj --json
-./src-tauri/target/release/cxbin-converter-tauri.exe model.cxbin --format obj --json --json-geometry
+./src-tauri/target/release/cxbin-converter.exe model.cxbin --format obj --json
+./src-tauri/target/release/cxbin-converter.exe model.cxbin --format obj --json --json-geometry
 ```
 
 Platzhalter:
