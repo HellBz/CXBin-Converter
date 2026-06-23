@@ -21,18 +21,3 @@ pub fn compute_normal(a: [f32; 3], b: [f32; 3], c: [f32; 3]) -> [f32; 3] {
     [nx / len, ny / len, nz / len]
 }
 
-pub fn mesh_bounds(mesh: &CxbinMesh) -> ([f32; 3], [f32; 3]) {
-    let mut min = [f32::MAX; 3];
-    let mut max = [f32::MIN; 3];
-    for v in &mesh.vertices {
-        for i in 0..3 {
-            if v[i] < min[i] {
-                min[i] = v[i];
-            }
-            if v[i] > max[i] {
-                max[i] = v[i];
-            }
-        }
-    }
-    (min, max)
-}

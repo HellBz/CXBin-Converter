@@ -449,12 +449,3 @@ pub fn load_cxbin<P: AsRef<Path>>(path: P) -> Result<CxbinMesh, CxbinError> {
     })
 }
 
-pub fn try_load_header<P: AsRef<Path>>(path: P) -> Result<bool, CxbinError> {
-    let mut f = File::open(path)?;
-    let mut version_buf = [0u8; 4];
-    f.read_exact(&mut version_buf)?;
-    let _version = i32::from_le_bytes(version_buf);
-    let mut magic = [0u8; 12];
-    f.read_exact(&mut magic)?;
-    Ok(&magic == MAGIC)
-}
