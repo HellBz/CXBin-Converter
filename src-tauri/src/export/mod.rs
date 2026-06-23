@@ -3,6 +3,7 @@ pub mod obj;
 pub mod off;
 pub mod ply;
 pub mod stl;
+pub mod threemf;
 
 use std::path::Path;
 
@@ -11,6 +12,7 @@ use obj::ObjExporter;
 use off::OffExporter;
 use ply::PlyExporter;
 use stl::StlExporter;
+use threemf::ThreeMFExporter;
 
 pub use mesh::Exporter;
 
@@ -20,6 +22,7 @@ pub fn exporter_for(format: &str) -> Option<Box<dyn Exporter>> {
         "ply" => Some(Box::new(PlyExporter)),
         "obj" => Some(Box::new(ObjExporter)),
         "off" => Some(Box::new(OffExporter)),
+        "3mf" => Some(Box::new(ThreeMFExporter)),
         _ => None,
     }
 }
@@ -32,5 +35,5 @@ pub fn export_mesh(mesh: &CxbinMesh, format: &str, output_path: &Path) -> anyhow
 }
 
 pub fn supported_formats() -> Vec<&'static str> {
-    vec!["stl", "ply", "obj", "off"]
+    vec!["stl", "ply", "obj", "off", "3mf"]
 }

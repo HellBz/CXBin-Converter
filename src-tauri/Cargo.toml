@@ -19,6 +19,8 @@ flate2 = "1.0"
 anyhow = "1.0"
 thiserror = "1.0"
 image = { version = "0.25", default-features = false, features = ["png"] }
+quick-xml = { version = "0.36", features = ["serialize"] }
+zip = { version = "2.2", default-features = false, features = ["deflate"] }
 
 [features]
 # This feature is used for production builds or when `devPath` points to the filesystem
