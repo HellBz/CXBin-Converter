@@ -27,7 +27,7 @@ export default function Viewer({ file, onClose }: ViewerProps) {
 
     let renderer: THREE.WebGLRenderer | null = null;
     let frameId: number;
-    let handleResize: (() => void) | null = null;
+    let resizeObserver: ResizeObserver | null = null;
 
     const setup = async () => {
       try {
@@ -112,15 +112,19 @@ export default function Viewer({ file, onClose }: ViewerProps) {
         controls.dampingFactor = 0.05;
         controls.target.set(0, 0, 0);
 
-        handleResize = () => {
+        const handleResize = () => {
           if (!containerRef.current || !renderer) return;
           const w = containerRef.current.clientWidth;
           const h = containerRef.current.clientHeight;
+          if (w === 0 || h === 0) return;
           camera.aspect = w / h;
           camera.updateProjectionMatrix();
           renderer.setSize(w, h);
         };
-        window.addEventListener("resize", handleResize);
+        resizeObserver = new ResizeObserver(handleResize);
+        if (containerRef.current) {
+          resizeObserver.observe(containerRef.current);
+        }
 
         const animate = () => {
           frameId = requestAnimationFrame(animate);
@@ -136,9 +140,7 @@ export default function Viewer({ file, onClose }: ViewerProps) {
     setup();
 
     return () => {
-      if (handleResize) {
-        window.removeEventListener("resize", handleResize);
-      }
+      resizeObserver?.disconnect();
       cancelAnimationFrame(frameId);
       if (renderer?.domElement && renderer.domElement.parentElement) {
         renderer.domElement.parentElement.removeChild(renderer.domElement);
