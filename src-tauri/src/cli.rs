@@ -41,6 +41,10 @@ struct CliArgs {
     /// Print all supported formats and exit
     #[arg(long)]
     list_formats: bool,
+
+    /// Export the input to every supported format (useful for testing)
+    #[arg(long)]
+    all_formats: bool,
 }
 
 #[derive(Serialize)]
@@ -118,6 +122,8 @@ pub fn try_cli_mode() {
     let input_path = Path::new(&input);
     let results = if input_path.is_dir() {
         convert_folder(&cli, input_path)
+    } else if cli.all_formats {
+        convert_all_formats(&cli, input_path)
     } else {
         vec![convert_one(&cli, input_path)]
     };
@@ -153,6 +159,31 @@ pub fn try_cli_mode() {
 
     let exit_code = if results.iter().all(|r| r.success) { 0 } else { 1 };
     process::exit(exit_code);
+}
+
+fn convert_all_formats(cli: &CliArgs, input_path: &Path) -> Vec<CliResult> {
+    let mut results = Vec::new();
+    let stem = input_path
+        .file_stem()
+        .and_then(|s| s.to_str())
+        .unwrap_or("out");
+    let parent = input_path.parent().unwrap_or_else(|| Path::new("."));
+
+    for fmt in supported_formats() {
+        let args = CliArgs {
+            input: Some(input_path.to_string_lossy().to_string()),
+            format: fmt.to_string(),
+            output: Some(parent.join(format!("{}_{}", stem, fmt)).to_string_lossy().to_string()),
+            output_name: None,
+            recursive: false,
+            json: cli.json,
+            json_geometry: cli.json_geometry,
+            list_formats: false,
+            all_formats: false,
+        };
+        results.push(convert_one(&args, input_path));
+    }
+    results
 }
 
 fn convert_folder(cli: &CliArgs, input_path: &Path) -> Vec<CliResult> {
