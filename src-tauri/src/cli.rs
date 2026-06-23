@@ -167,14 +167,17 @@ fn convert_all_formats(cli: &CliArgs, input_path: &Path) -> Vec<CliResult> {
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("out");
-    let parent = input_path.parent().unwrap_or_else(|| Path::new("."));
+    let parent = input_path
+        .parent()
+        .filter(|p| !p.as_os_str().is_empty())
+        .unwrap_or_else(|| Path::new("."));
 
     for fmt in supported_formats() {
         let args = CliArgs {
             input: Some(input_path.to_string_lossy().to_string()),
             format: fmt.to_string(),
-            output: Some(parent.join(format!("{}_{}", stem, fmt)).to_string_lossy().to_string()),
-            output_name: None,
+            output: Some(parent.to_string_lossy().to_string()),
+            output_name: Some(format!("{}_{}", stem, fmt)),
             recursive: false,
             json: cli.json,
             json_geometry: cli.json_geometry,
