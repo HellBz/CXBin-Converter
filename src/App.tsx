@@ -5,6 +5,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import {
   FileUp,
   FolderOpen,
+  Folder,
   Loader2,
   Trash2,
   Eye,
@@ -62,6 +63,7 @@ export default function App() {
   const { t } = useI18n();
   const [files, setFiles] = useState<string[]>([]);
   const [format, setFormat] = useState("stl");
+  const [outputFolder, setOutputFolder] = useState<string | null>(null);
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<ConversionResult[]>([]);
   const [previewFile, setPreviewFile] = useState<string | null>(null);
@@ -99,6 +101,15 @@ export default function App() {
     }
   };
 
+  const browseOutputFolder = async () => {
+    const selected = await open({
+      directory: true,
+    });
+    if (selected && typeof selected === "string") {
+      setOutputFolder(selected);
+    }
+  };
+
   const convert = async () => {
     if (files.length === 0) return;
     setRunning(true);
@@ -109,6 +120,7 @@ export default function App() {
         const result = await invoke<ConversionResult>("convert_cxbin", {
           input,
           format,
+          outputFolder,
         });
         out.push(result);
       } catch (e) {
@@ -188,7 +200,7 @@ export default function App() {
           </div>
         )}
 
-        <div className="flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-4">
           <Select value={format} onValueChange={setFormat}>
             <SelectTrigger className="w-40">
               <SelectValue placeholder={t("format.placeholder")} />
@@ -202,11 +214,28 @@ export default function App() {
             </SelectContent>
           </Select>
 
+          <Button variant="outline" onClick={browseOutputFolder}>
+            <FolderOpen className="mr-2 h-4 w-4" />
+            {outputFolder ? t("outputFolder.change") : t("outputFolder.select")}
+          </Button>
+
           <Button onClick={convert} disabled={files.length === 0 || running}>
             {running && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {t("convert")}
           </Button>
         </div>
+        {outputFolder && (
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span className="truncate">{outputFolder}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setOutputFolder(null)}
+            >
+              {t("outputFolder.clear")}
+            </Button>
+          </div>
+        )}
 
         {results.length > 0 && (
           <div className="space-y-3">
@@ -219,19 +248,43 @@ export default function App() {
                     : "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10"
                 }`}
               >
-                <div className="font-medium">
-                  {r.success ? t("result.success") : t("result.error")}
+                <div className="text-sm truncate">
+                  <span className="font-medium">
+                    {r.success ? t("result.success") : t("result.error")}
+                  </span>
+                  {r.input && (
+                    <span className="text-muted-foreground">: {r.input}</span>
+                  )}
                 </div>
-                {r.input && (
-                  <div className="text-sm text-muted-foreground truncate">
-                    {r.input}
-                  </div>
-                )}
                 {r.success && r.stats && (
-                  <div className="mt-2 text-sm">
-                    {t("result.vertices")}: {r.stats.vertices}, {t("result.faces")}: {r.stats.faces}
-                    <br />
-                    {t("result.output")}: {r.outputs?.join(", ")}
+                  <div className="mt-2 text-sm space-y-1">
+                    <div>
+                      {t("result.vertices")}: {r.stats.vertices}
+                    </div>
+                    <div>
+                      {t("result.faces")}: {r.stats.faces}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>{t("result.output")}:</span>
+                      {r.outputs?.map((output) => (
+                        <span key={output} className="flex items-center gap-1">
+                          <button
+                            className="text-primary underline hover:text-primary/80"
+                            onClick={() => invoke("open_path", { path: output, openFolder: false })}
+                            title={output}
+                          >
+                            {output}
+                          </button>
+                          <button
+                            className="text-muted-foreground hover:text-primary"
+                            onClick={() => invoke("open_path", { path: output, openFolder: true })}
+                            title={t("result.openFolder")}
+                          >
+                            <Folder className="h-4 w-4" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
                 {!r.success && r.error && (

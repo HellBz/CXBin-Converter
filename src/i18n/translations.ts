@@ -21,6 +21,11 @@ export const translations = {
     format: {
       placeholder: "Format",
     },
+    outputFolder: {
+      select: "Select output folder",
+      change: "Change output folder",
+      clear: "Clear",
+    },
     convert: "Convert",
     result: {
       success: "Success",
@@ -28,6 +33,7 @@ export const translations = {
       vertices: "Vertices",
       faces: "Faces",
       output: "Output",
+      openFolder: "Open folder",
     },
     viewer: {
       title: "Preview",
@@ -62,6 +68,11 @@ export const translations = {
     format: {
       placeholder: "Format",
     },
+    outputFolder: {
+      select: "Ausgabeordner wählen",
+      change: "Ausgabeordner ändern",
+      clear: "Entfernen",
+    },
     convert: "Konvertieren",
     result: {
       success: "Erfolg",
@@ -69,6 +80,7 @@ export const translations = {
       vertices: "Vertices",
       faces: "Faces",
       output: "Ausgabe",
+      openFolder: "Ordner öffnen",
     },
     viewer: {
       title: "Vorschau",
@@ -103,6 +115,11 @@ export const translations = {
     format: {
       placeholder: "Format",
     },
+    outputFolder: {
+      select: "Choisir le dossier de sortie",
+      change: "Changer le dossier de sortie",
+      clear: "Effacer",
+    },
     convert: "Convertir",
     result: {
       success: "Succès",
@@ -110,6 +127,7 @@ export const translations = {
       vertices: "Sommets",
       faces: "Faces",
       output: "Sortie",
+      openFolder: "Ouvrir le dossier",
     },
     viewer: {
       title: "Aperçu",
@@ -144,6 +162,11 @@ export const translations = {
     format: {
       placeholder: "Formato",
     },
+    outputFolder: {
+      select: "Seleccionar carpeta de salida",
+      change: "Cambiar carpeta de salida",
+      clear: "Borrar",
+    },
     convert: "Convertir",
     result: {
       success: "Éxito",
@@ -151,6 +174,7 @@ export const translations = {
       vertices: "Vértices",
       faces: "Caras",
       output: "Salida",
+      openFolder: "Abrir carpeta",
     },
     viewer: {
       title: "Vista previa",
@@ -185,6 +209,11 @@ export const translations = {
     format: {
       placeholder: "格式",
     },
+    outputFolder: {
+      select: "选择输出文件夹",
+      change: "更改输出文件夹",
+      clear: "清除",
+    },
     convert: "转换",
     result: {
       success: "成功",
@@ -192,6 +221,7 @@ export const translations = {
       vertices: "顶点",
       faces: "面",
       output: "输出",
+      openFolder: "打开文件夹",
     },
     viewer: {
       title: "预览",
@@ -226,6 +256,11 @@ export const translations = {
     format: {
       placeholder: "形式",
     },
+    outputFolder: {
+      select: "出力フォルダを選択",
+      change: "出力フォルダを変更",
+      clear: "クリア",
+    },
     convert: "変換",
     result: {
       success: "成功",
@@ -233,6 +268,7 @@ export const translations = {
       vertices: "頂点",
       faces: "面",
       output: "出力",
+      openFolder: "フォルダを開く",
     },
     viewer: {
       title: "プレビュー",

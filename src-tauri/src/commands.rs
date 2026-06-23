@@ -25,16 +25,27 @@ pub struct Stats {
 }
 
 #[command]
-pub fn convert_cxbin(input: String, format: String) -> Result<ConversionResult, String> {
+pub fn convert_cxbin(
+    input: String,
+    format: String,
+    output_folder: Option<String>,
+) -> Result<ConversionResult, String> {
     let input_path = Path::new(&input);
     let stem = input_path
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("out");
-    let parent = input_path
-        .parent()
+    let parent = output_folder
+        .as_ref()
+        .map(|f| Path::new(f).to_path_buf())
         .filter(|p| !p.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."));
+        .unwrap_or_else(|| {
+            input_path
+                .parent()
+                .filter(|p| !p.as_os_str().is_empty())
+                .unwrap_or_else(|| Path::new("."))
+                .to_path_buf()
+        });
 
     let format = format.to_lowercase();
 
