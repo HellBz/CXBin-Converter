@@ -51,3 +51,10 @@ jobs:
           releaseBody: 'Automated release for ${{ github.ref_name }}.'
           releaseDraft: true
           prerelease: false
+
+      - name: Upload raw Windows executable
+        if: matrix.platform == 'windows-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload ${{ github.ref_name }} src-tauri/target/release/cxbin-converter.exe --clobber --repo ${{ github.repository }}
