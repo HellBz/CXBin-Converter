@@ -87,7 +87,7 @@ export default function Viewer({ file, onClose }: ViewerProps) {
         directional.position.set(5, 10, 7);
         scene.add(directional);
 
-        // Center and scale
+        // Center and scale so the object fits in a normalized view
         geometry.computeBoundingBox();
         const box = geometry.boundingBox;
         if (box) {
@@ -99,8 +99,8 @@ export default function Viewer({ file, onClose }: ViewerProps) {
           wireframe.scale.setScalar(scale);
           mesh.position.sub(center.clone().multiplyScalar(scale));
           wireframe.position.copy(mesh.position);
-          camera.position.z = maxDim > 0 ? maxDim * 1.5 : 5;
         }
+        camera.position.z = 6;
 
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
