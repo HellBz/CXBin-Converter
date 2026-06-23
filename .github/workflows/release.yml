@@ -1,98 +1,53 @@
-name: Build & Release cxbin_converter
+name: Build & Release Tauri App
 
 on:
   push:
     tags:
-      - 'v*'        # run on version tags like v1.2.3
-  workflow_dispatch: # allow manual runs
+      - 'v*'            # run on version tags like v1.2.3
+  workflow_dispatch:    # allow manual runs
 
 permissions:
-  contents: write    # needed to create releases
+  contents: write      # needed to create releases
 
 jobs:
-  build:
-    name: Build binaries (Linux & Windows)
-    runs-on: ${{ matrix.os }}
+  publish-tauri:
+    name: Build Tauri bundles
+    permissions:
+      contents: write
+    runs-on: ${{ matrix.platform }}
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, self-hosted]
+        platform: [macos-latest, ubuntu-22.04, windows-latest]
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Python 3.11
-        uses: actions/setup-python@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.11'
+          node-version: lts/*
 
-      # Linux build (calls your bin/build.sh which uses PyInstaller with --distpath bin)
-      - name: Build on Linux
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt
-          python -m pip install pyinstaller
-          bash bin/build.sh
-        shell: bash
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
 
-      # Windows build (calls your bin/build.bat which drops exe into bin\)
-      - name: Build on Windows
-        if: matrix.os == 'self-hosted'
-        run: bin\build.bat
-        shell: cmd
+      - name: Install frontend dependencies
+        run: npm install
 
-      # Upload artifacts from bin/
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.os }}-artifacts
-          path: |
-            bin/cxbin_converter*
-          if-no-files-found: error
-
-  release:
-    name: Create GitHub Release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: release
-          merge-multiple: true
-
-      - name: Normalize filenames
-        run: |
-          set -e
-          RAW="${GITHUB_REF_NAME}"      # e.g. v1.5
-          VERSION="${RAW#v}"            # strip leading "v" -> 1.5
-          mkdir -p rel
-          # pick Linux binary and rename
-          if [ -f "release/cxbin_converter" ]; then
-            mv release/cxbin_converter "rel/cxbin_converter-linux-x86_64-${VERSION}"
-          else
-            # sometimes artifacts are nested; find it
-            LINUX_BIN="$(find release -maxdepth 2 -type f -name 'cxbin_converter' | head -n1 || true)"
-            if [ -n "$LINUX_BIN" ]; then cp "$LINUX_BIN" "rel/cxbin_converter-linux-x86_64-${VERSION}"; fi
-          fi
-          # pick Windows binary and rename
-          if [ -f "release/cxbin_converter.exe" ]; then
-            mv release/cxbin_converter.exe "rel/cxbin_converter-windows-x86_64-${VERSION}.exe"
-          else
-            WIN_BIN="$(find release -maxdepth 2 -type f -name 'cxbin_converter.exe' | head -n1 || true)"
-            if [ -n "$WIN_BIN" ]; then cp "$WIN_BIN" "rel/cxbin_converter-windows-x86_64-${VERSION}.exe"; fi
-          fi
-          ls -l rel
-
-      - name: Create release and upload files
-        uses: softprops/action-gh-release@v2
-        with:
-          draft: false
-          prerelease: false
-          files: |
-            rel/cxbin_converter-linux-x86_64-*
-            rel/cxbin_converter-windows-x86_64-*.exe
+      - name: Build and release Tauri bundles
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'CXBin-Converter ${{ github.ref_name }}'
+          releaseBody: 'Automated release for ${{ github.ref_name }}.'
+          releaseDraft: true
+          prerelease: false
