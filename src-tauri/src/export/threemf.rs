@@ -186,7 +186,7 @@ fn model_xml(mesh: &CxbinMesh) -> String {
 /// Render a simple 2D orthographic thumbnail of the mesh into a PNG.
 /// The model is rotated to give an isometric-style view before projection.
 fn render_thumbnail(mesh: &CxbinMesh, width: u32, height: u32) -> Vec<u8> {
-    let mut img = ImageBuffer::from_pixel(width, height, Rgba([240, 240, 240, 255]));
+    let mut img = ImageBuffer::from_pixel(width, height, Rgba([17, 24, 39, 255]));
 
     // Rotate vertices around X and Y for a 3/4 view.
     let angle_x = -30f32.to_radians();
@@ -219,9 +219,9 @@ fn render_thumbnail(mesh: &CxbinMesh, width: u32, height: u32) -> Vec<u8> {
         let a = project(&rotated[f[0] as usize]);
         let b = project(&rotated[f[1] as usize]);
         let c = project(&rotated[f[2] as usize]);
-        draw_line(&mut img, a, b, Rgba([59, 130, 246, 255]));
-        draw_line(&mut img, b, c, Rgba([59, 130, 246, 255]));
-        draw_line(&mut img, c, a, Rgba([59, 130, 246, 255]));
+        draw_line(&mut img, a, b, Rgba([34, 197, 94, 255]));
+        draw_line(&mut img, b, c, Rgba([34, 197, 94, 255]));
+        draw_line(&mut img, c, a, Rgba([34, 197, 94, 255]));
     }
 
     let mut out = Vec::new();
