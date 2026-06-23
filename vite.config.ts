@@ -8,6 +8,7 @@ export default defineConfig(async () => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "three/addons": path.resolve(__dirname, "./node_modules/three/examples/jsm"),
     },
   },
 

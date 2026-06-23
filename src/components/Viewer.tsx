@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
+import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
@@ -101,10 +102,14 @@ export default function Viewer({ file, onClose }: ViewerProps) {
           camera.position.z = maxDim > 0 ? maxDim * 1.5 : 5;
         }
 
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.target.set(0, 0, 0);
+
         const animate = () => {
           frameId = requestAnimationFrame(animate);
-          mesh.rotation.y += 0.005;
-          wireframe.rotation.y += 0.005;
+          controls.update();
           renderer?.render(scene, camera);
         };
         animate();
