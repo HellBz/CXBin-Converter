@@ -120,7 +120,9 @@ export default function App() {
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="text-center">
           <div className="flex items-center justify-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">CXBin Converter</h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              <span className="text-primary">CX</span>Bin Converter
+            </h1>
             <ThemeToggle />
           </div>
           <p className="text-muted-foreground">
