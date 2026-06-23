@@ -2,8 +2,18 @@ import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
-import { FileUp, FolderOpen, Loader2, Trash2, Eye } from "lucide-react";
+import {
+  FileUp,
+  FolderOpen,
+  Loader2,
+  Trash2,
+  Eye,
+  Sun,
+  Moon,
+  Monitor,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/components/ThemeProvider";
 import {
   Select,
   SelectContent,
@@ -28,6 +38,17 @@ interface ConversionResult {
 }
 
 const FORMATS = ["stl", "ply", "obj", "off", "3mf", "amf", "vrml", "x3d"];
+
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <Button variant="outline" size="icon" onClick={toggleTheme} title={`Theme: ${theme}`}>
+      {theme === "light" && <Sun className="h-4 w-4" />}
+      {theme === "dark" && <Moon className="h-4 w-4" />}
+      {theme === "system" && <Monitor className="h-4 w-4" />}
+    </Button>
+  );
+}
 
 export default function App() {
   const [files, setFiles] = useState<string[]>([]);
@@ -98,7 +119,10 @@ export default function App() {
     <div className="min-h-screen bg-background p-6">
       <div className="mx-auto max-w-2xl space-y-6">
         <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight">CXBin Converter</h1>
+          <div className="flex items-center justify-center gap-3">
+            <h1 className="text-3xl font-bold tracking-tight">CXBin Converter</h1>
+            <ThemeToggle />
+          </div>
           <p className="text-muted-foreground">
             Tauri Desktop Rewrite basierend auf der Creality CXBin-Referenz
           </p>
@@ -175,7 +199,9 @@ export default function App() {
               <div
                 key={i}
                 className={`rounded-lg border p-4 ${
-                  r.success ? "border-green-200 bg-green-50" : "border-red-200 bg-red-50"
+                  r.success
+                    ? "border-green-500/30 bg-green-500/10 dark:border-green-400/30 dark:bg-green-400/10"
+                    : "border-red-500/30 bg-red-500/10 dark:border-red-400/30 dark:bg-red-400/10"
                 }`}
               >
                 <div className="font-medium">
@@ -194,7 +220,7 @@ export default function App() {
                   </div>
                 )}
                 {!r.success && r.error && (
-                  <div className="mt-2 text-sm text-red-700">{r.error}</div>
+                  <div className="mt-2 text-sm text-red-700 dark:text-red-300">{r.error}</div>
                 )}
               </div>
             ))}
