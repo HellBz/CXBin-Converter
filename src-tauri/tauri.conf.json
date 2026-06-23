@@ -24,7 +24,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["msi", "nsis"],
+    "targets": "all",
     "category": "DeveloperTool",
     "copyright": "MIT",
     "windows": {
