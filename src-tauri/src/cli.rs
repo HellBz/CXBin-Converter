@@ -4,7 +4,7 @@ use std::process;
 use clap::Parser;
 use serde::Serialize;
 
-use crate::cxbin::load_cxbin;
+use crate::cxbin::{load_cxbin, CxbinMesh};
 use crate::export::{export_mesh, supported_formats};
 
 #[derive(Parser)]
@@ -59,6 +59,12 @@ struct CliResult {
 struct Stats {
     vertices: usize,
     faces: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    texture_count: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    compressed_bytes: Option<usize>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    uncompressed_bytes: Option<usize>,
 }
 
 #[derive(Serialize)]
@@ -111,12 +117,25 @@ pub fn try_cli_mode() {
     } else {
         for r in &results {
             if r.success {
-                println!("✓ {} -> {}", r.input, r.outputs.join(", "));
+                println!("✅ Erfolgreich exportiert:");
+                println!("   🔸 Format:        {}", r.format.to_uppercase());
+                println!("   🔸 Ziel:          {}", r.outputs.join(", "));
+                println!("   🔸 Vertices:      {}", r.stats.vertices);
+                println!("   🔸 Faces:         {}", r.stats.faces);
+                if let Some(t) = r.stats.texture_count {
+                    println!("   🔸 Texturen:      {}", t);
+                }
+                if let Some(b) = r.stats.compressed_bytes {
+                    println!("   🔸 Komprimiert:   {} Bytes", b);
+                }
+                if let Some(b) = r.stats.uncompressed_bytes {
+                    println!("   🔸 Dekomprimiert: {} Bytes", b);
+                }
             } else {
                 eprintln!(
-                    "✗ {}: {}",
+                    "❌ Fehler bei {}: {}",
                     r.input,
-                    r.error.as_deref().unwrap_or("unknown error")
+                    r.error.as_deref().unwrap_or("unbekannter Fehler")
                 );
             }
         }
@@ -149,6 +168,16 @@ fn convert_folder(cli: &CliArgs) -> Vec<CliResult> {
     files.into_iter().map(|p| convert_one(cli, &p)).collect()
 }
 
+fn mesh_stats(mesh: &CxbinMesh) -> Stats {
+    Stats {
+        vertices: mesh.vertex_count(),
+        faces: mesh.face_count(),
+        texture_count: mesh.materials.as_ref().map(|m| m.textures.len()),
+        compressed_bytes: mesh.compressed_bytes,
+        uncompressed_bytes: mesh.uncompressed_bytes,
+    }
+}
+
 fn convert_one(cli: &CliArgs, input_path: &Path) -> CliResult {
     let format = cli.format.to_lowercase();
     if !supported_formats().contains(&format.as_str()) {
@@ -157,7 +186,13 @@ fn convert_one(cli: &CliArgs, input_path: &Path) -> CliResult {
             input: input_path.to_string_lossy().to_string(),
             format,
             outputs: Vec::new(),
-            stats: Stats { vertices: 0, faces: 0 },
+            stats: Stats {
+                vertices: 0,
+                faces: 0,
+                texture_count: None,
+                compressed_bytes: None,
+                uncompressed_bytes: None,
+            },
             error: Some(format!("unsupported format: {}", cli.format)),
             geometry: None,
         };
@@ -171,7 +206,13 @@ fn convert_one(cli: &CliArgs, input_path: &Path) -> CliResult {
                 input: input_path.to_string_lossy().to_string(),
                 format,
                 outputs: Vec::new(),
-                stats: Stats { vertices: 0, faces: 0 },
+                stats: Stats {
+                    vertices: 0,
+                    faces: 0,
+                    texture_count: None,
+                    compressed_bytes: None,
+                    uncompressed_bytes: None,
+                },
                 error: Some(e.to_string()),
                 geometry: None,
             }
@@ -223,10 +264,7 @@ fn convert_one(cli: &CliArgs, input_path: &Path) -> CliResult {
             input: input_path.to_string_lossy().to_string(),
             format,
             outputs,
-            stats: Stats {
-                vertices: mesh.vertex_count(),
-                faces: mesh.face_count(),
-            },
+            stats: mesh_stats(&mesh),
             error: None,
             geometry,
         },
@@ -235,10 +273,7 @@ fn convert_one(cli: &CliArgs, input_path: &Path) -> CliResult {
             input: input_path.to_string_lossy().to_string(),
             format,
             outputs: Vec::new(),
-            stats: Stats {
-                vertices: mesh.vertex_count(),
-                faces: mesh.face_count(),
-            },
+            stats: mesh_stats(&mesh),
             error: Some(e.to_string()),
             geometry,
         },
