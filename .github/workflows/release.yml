@@ -51,27 +51,16 @@ jobs:
           releaseBody: 'Automated release for ${{ github.ref_name }}.'
           releaseDraft: false
           prerelease: false
-          targets: x86_64-pc-windows-msvc,i686-pc-windows-msvc,aarch64-pc-windows-msvc,x86_64-apple-darwin,aarch64-apple-darwin,x86_64-unknown-linux-gnu
-
-      - name: Upload raw Windows executables
+      - name: Upload raw Windows x64 executable
         if: matrix.platform == 'windows-latest'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          $targets = @(
-            @("x86_64-pc-windows-msvc", "x64"),
-            @("i686-pc-windows-msvc", "x86"),
-            @("aarch64-pc-windows-msvc", "arm64")
-          )
-          foreach ($target in $targets) {
-            $triple = $target[0]
-            $suffix = $target[1]
-            $exe = "src-tauri/target/$triple/release/cxbin-converter.exe"
-            $renamed = "src-tauri/target/$triple/release/cxbin-converter_${{ github.ref_name }}_$suffix.exe"
-            if (Test-Path $exe) {
-              Copy-Item $exe $renamed
-              gh release upload ${{ github.ref_name }} $renamed --clobber --repo ${{ github.repository }}
-            } else {
-              Write-Output "Executable not found: $exe"
-            }
+          $exe = "src-tauri/target/release/cxbin-converter.exe"
+          $renamed = "src-tauri/target/release/cxbin-converter_${{ github.ref_name }}_x64.exe"
+          if (Test-Path $exe) {
+            Copy-Item $exe $renamed
+            gh release upload ${{ github.ref_name }} $renamed --clobber --repo ${{ github.repository }}
+          } else {
+            Write-Output "Executable not found: $exe"
           }
