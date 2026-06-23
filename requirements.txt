@@ -1,7 +1,0 @@
-numpy
-trimesh
-meshio
-networkx
-lxml
-Pillow
-pygltflib

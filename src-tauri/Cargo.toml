@@ -1,0 +1,26 @@
+[package]
+name = "cxbin-converter-tauri"
+version = "2.0.0"
+description = "Tauri rewrite of the CXBin converter"
+authors = ["Stefan"]
+license = "MIT"
+repository = "https://github.com/HellBz/cxbin_converter"
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2.0.0-beta", features = [] }
+
+[dependencies]
+tauri = { version = "2.0.0-beta", features = [] }
+tauri-plugin-dialog = "2.0.0-beta"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+flate2 = "1.0"
+anyhow = "1.0"
+thiserror = "1.0"
+image = { version = "0.25", default-features = false, features = ["png"] }
+
+[features]
+# This feature is used for production builds or when `devPath` points to the filesystem
+# DO NOT REMOVE!!
+custom-protocol = ["tauri/custom-protocol"]
