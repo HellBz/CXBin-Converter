@@ -38,7 +38,7 @@ export default function Viewer({ file, onClose }: ViewerProps) {
         const height = containerRef.current.clientHeight;
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x111827);
+        scene.background = new THREE.Color(0x1f2937);
 
         const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
         camera.position.set(0, 0, 5);
@@ -64,19 +64,23 @@ export default function Viewer({ file, onClose }: ViewerProps) {
         geometry.setIndex(new THREE.BufferAttribute(indices, 1));
         geometry.computeVertexNormals();
 
+        // Flat shaded surface, neutral gray so the wireframe pops
         const material = new THREE.MeshStandardMaterial({
-          color: 0x22c55e,
-          roughness: 0.5,
-          metalness: 0.1,
+          color: 0x4b5563,
+          roughness: 0.7,
+          metalness: 0.05,
           side: THREE.DoubleSide,
+          transparent: true,
+          opacity: 0.85,
+          flatShading: true,
         });
         const mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh);
 
-        // Wireframe overlay
+        // Wireframe overlay in bright green
         const wireframe = new THREE.LineSegments(
           new THREE.WireframeGeometry(geometry),
-          new THREE.LineBasicMaterial({ color: 0x14532d, linewidth: 1 })
+          new THREE.LineBasicMaterial({ color: 0x4ade80, linewidth: 1 })
         );
         scene.add(wireframe);
 
