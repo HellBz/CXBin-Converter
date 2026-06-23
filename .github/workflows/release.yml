@@ -57,4 +57,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload ${{ github.ref_name }} src-tauri/target/release/cxbin-converter.exe --clobber --repo ${{ github.repository }}
+          $exe = "src-tauri/target/release/cxbin-converter.exe"
+          $renamed = "src-tauri/target/release/cxbin-converter_${{ github.ref_name }}.exe"
+          Copy-Item $exe $renamed
+          gh release upload ${{ github.ref_name }} $renamed --clobber --repo ${{ github.repository }}
