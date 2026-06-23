@@ -12,7 +12,7 @@ use crate::export::{export_mesh, supported_formats};
 #[command(about = "Convert Creality CXBin files to common 3D formats")]
 struct CliArgs {
     /// Input .cxbin file or folder
-    input: String,
+    input: Option<String>,
 
     /// Target format (stl, ply, obj, off, 3mf, amf, vrml, x3d)
     #[arg(short, long, default_value = "stl")]
@@ -105,9 +105,19 @@ pub fn try_cli_mode() {
         process::exit(0);
     }
 
-    let input_path = Path::new(&cli.input);
+    let Some(ref input) = cli.input else {
+        if cli.json {
+            println!("{{\"error\":\"No input provided.\"}}");
+        } else {
+            println!("Fehler: Keine Eingabedatei angegeben.");
+            println!("Nutze --help für alle Optionen.");
+        }
+        process::exit(1);
+    };
+
+    let input_path = Path::new(&input);
     let results = if input_path.is_dir() {
-        convert_folder(&cli)
+        convert_folder(&cli, input_path)
     } else {
         vec![convert_one(&cli, input_path)]
     };
@@ -145,16 +155,17 @@ pub fn try_cli_mode() {
     process::exit(exit_code);
 }
 
-fn convert_folder(cli: &CliArgs) -> Vec<CliResult> {
+fn convert_folder(cli: &CliArgs, input_path: &Path) -> Vec<CliResult> {
+    let input = input_path.to_string_lossy();
     let mut files = Vec::new();
-    let pattern = format!("{}/*.cxbin", cli.input);
+    let pattern = format!("{}/*.cxbin", input);
     for entry in glob::glob(&pattern).unwrap_or_else(|_| glob::glob("*.cxbin").unwrap()) {
         if let Ok(path) = entry {
             files.push(path);
         }
     }
     if cli.recursive {
-        let pattern = format!("{}/**/*.cxbin", cli.input);
+        let pattern = format!("{}/**/*.cxbin", input);
         let recursive: Vec<_> = glob::glob(&pattern)
             .unwrap_or_else(|_| glob::glob("*.cxbin").unwrap())
             .filter_map(|e| e.ok())
