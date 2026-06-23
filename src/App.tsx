@@ -41,23 +41,20 @@ interface ConversionResult {
 
 const FORMATS = ["stl", "ply", "plyb", "xyz", "obj", "off", "3mf", "amf", "vrml", "x3d", "dae", "glb", "gltf", "vtk", "msh", "dxf", "fbx", "usdz"];
 
-function HeaderToggles() {
+function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
   const { t } = useI18n();
   return (
-    <div className="flex items-center gap-2">
-      <LanguageToggle />
-      <Button
-        variant="outline"
-        size="icon"
-        onClick={toggleTheme}
-        title={t("theme.title", { theme })}
-      >
-        {theme === "light" && <Sun className="h-4 w-4" />}
-        {theme === "dark" && <Moon className="h-4 w-4" />}
-        {theme === "system" && <Monitor className="h-4 w-4" />}
-      </Button>
-    </div>
+    <Button
+      variant="outline"
+      size="icon"
+      onClick={toggleTheme}
+      title={t("theme.title", { theme })}
+    >
+      {theme === "light" && <Sun className="h-4 w-4" />}
+      {theme === "dark" && <Moon className="h-4 w-4" />}
+      {theme === "system" && <Monitor className="h-4 w-4" />}
+    </Button>
   );
 }
 
@@ -128,15 +125,19 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <div className="mx-auto max-w-2xl space-y-6">
+    <div className="relative min-h-screen bg-background p-6">
+      <div className="fixed top-4 left-4 z-50">
+        <ThemeToggle />
+      </div>
+      <div className="fixed top-4 right-4 z-50">
+        <LanguageToggle />
+      </div>
+
+      <div className="mx-auto max-w-2xl space-y-6 pt-10">
         <div className="text-center">
-          <div className="flex items-center justify-center gap-3">
-            <h1 className="text-3xl font-bold tracking-tight">
-              <span className="text-primary">CX</span>Bin Converter
-            </h1>
-            <HeaderToggles />
-          </div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            <span className="text-primary">CX</span>Bin Converter
+          </h1>
           <p className="text-muted-foreground">
             {t("app.subtitle")}
           </p>
