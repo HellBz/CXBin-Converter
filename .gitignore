@@ -25,6 +25,9 @@ src-tauri/*.rs.bk
 *.off
 *.mtl
 
+# Vite cache
+.vite
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

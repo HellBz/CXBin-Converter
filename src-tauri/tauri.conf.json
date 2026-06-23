@@ -1,6 +1,6 @@
 {
   "productName": "CXBin-Converter",
-  "version": "2.1.10",
+  "version": "2.1.11",
   "identifier": "com.hellbz.cxbin-converter",
   "build": {
     "frontendDist": "../dist",
