@@ -37,7 +37,7 @@ interface ConversionResult {
   error?: string;
 }
 
-const FORMATS = ["stl", "ply", "obj", "off", "3mf", "amf", "vrml", "x3d"];
+const FORMATS = ["stl", "ply", "obj", "off", "3mf", "amf", "vrml", "x3d", "dae", "glb", "gltf"];
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();

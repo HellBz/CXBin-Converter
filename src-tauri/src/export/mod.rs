@@ -1,4 +1,7 @@
 pub mod amf;
+pub mod dae;
+pub mod glb;
+pub mod gltf;
 pub mod mesh;
 pub mod obj;
 pub mod off;
@@ -12,6 +15,9 @@ use std::path::Path;
 
 use crate::cxbin::CxbinMesh;
 use amf::AmfExporter;
+use dae::DaeExporter;
+use glb::GlbExporter;
+use gltf::GltfExporter;
 use obj::ObjExporter;
 use off::OffExporter;
 use ply::PlyExporter;
@@ -32,6 +38,9 @@ pub fn exporter_for(format: &str) -> Option<Box<dyn Exporter>> {
         "amf" => Some(Box::new(AmfExporter)),
         "vrml" => Some(Box::new(VrmlExporter)),
         "x3d" => Some(Box::new(X3dExporter)),
+        "dae" => Some(Box::new(DaeExporter)),
+        "glb" => Some(Box::new(GlbExporter)),
+        "gltf" => Some(Box::new(GltfExporter)),
         _ => None,
     }
 }
@@ -44,5 +53,5 @@ pub fn export_mesh(mesh: &CxbinMesh, format: &str, output_path: &Path) -> anyhow
 }
 
 pub fn supported_formats() -> Vec<&'static str> {
-    vec!["stl", "ply", "obj", "off", "3mf", "amf", "vrml", "x3d"]
+    vec!["stl", "ply", "obj", "off", "3mf", "amf", "vrml", "x3d", "dae", "glb", "gltf"]
 }
