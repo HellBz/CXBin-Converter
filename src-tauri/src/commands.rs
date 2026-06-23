@@ -92,6 +92,25 @@ pub fn convert_cxbin(input: String, format: String) -> Result<ConversionResult, 
     }
 }
 
+#[derive(Serialize)]
+pub struct GeometryData {
+    pub vertices: Vec<[f32; 3]>,
+    pub faces: Vec<[i32; 3]>,
+    pub vertex_count: usize,
+    pub face_count: usize,
+}
+
+#[command]
+pub fn get_geometry(input: String) -> Result<GeometryData, String> {
+    let mesh = load_cxbin(&input).map_err(|e| e.to_string())?;
+    Ok(GeometryData {
+        vertex_count: mesh.vertex_count(),
+        face_count: mesh.face_count(),
+        vertices: mesh.vertices,
+        faces: mesh.faces,
+    })
+}
+
 #[command]
 pub fn supported_formats() -> Vec<String> {
     crate::export::supported_formats()

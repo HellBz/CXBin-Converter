@@ -13,6 +13,7 @@ fn main() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             commands::convert_cxbin,
+            commands::get_geometry,
             commands::supported_formats
         ])
         .run(tauri::generate_context!())

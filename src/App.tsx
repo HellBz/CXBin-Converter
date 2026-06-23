@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { open } from "@tauri-apps/plugin-dialog";
-import { FileUp, FolderOpen, Loader2, Trash2 } from "lucide-react";
+import { FileUp, FolderOpen, Loader2, Trash2, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -11,6 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import Viewer from "@/components/Viewer";
 
 interface ConversionResult {
   success: boolean;
@@ -33,6 +34,7 @@ export default function App() {
   const [format, setFormat] = useState("stl");
   const [running, setRunning] = useState(false);
   const [results, setResults] = useState<ConversionResult[]>([]);
+  const [previewFile, setPreviewFile] = useState<string | null>(null);
 
   const addFiles = useCallback((paths: string[]) => {
     setFiles((prev) => Array.from(new Set([...prev, ...paths])));
@@ -131,8 +133,16 @@ export default function App() {
             </div>
             <ul className="max-h-40 space-y-1 overflow-y-auto text-sm text-muted-foreground">
               {files.map((f) => (
-                <li key={f} className="truncate">
-                  {f}
+                <li key={f} className="flex items-center justify-between gap-2">
+                  <span className="truncate">{f}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setPreviewFile(f)}
+                  >
+                    <Eye className="mr-1 h-3 w-3" />
+                    Vorschau
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -191,6 +201,10 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {previewFile && (
+        <Viewer file={previewFile} onClose={() => setPreviewFile(null)} />
+      )}
     </div>
   );
 }
