@@ -1,6 +1,6 @@
 # CXBin Converter – Tauri Rewrite
 
-A powerful Tauri desktop rewrite of the [CXBin-Converter](https://github.com/HellBz/cxbin_converter). It reads `.cxbin` files (Creality Model Format) and converts them into common 3D formats. CXBin parsing is based on the official C++ reference implementation from [CrealityOfficial/cxbin](https://github.com/CrealityOfficial/cxbin/tree/version-2.0.0/cxbin).
+A powerful Tauri desktop rewrite of the [CXBin-Converter](https://github.com/HellBz/CXBin-Converter/tree/legacy). It reads `.cxbin` files (Creality Model Format) and converts them into common 3D formats. CXBin parsing is based on the official C++ reference implementation from [CrealityOfficial/cxbin](https://github.com/CrealityOfficial/cxbin/tree/version-2.0.0/cxbin).
 
 ---
 
