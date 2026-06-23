@@ -1,6 +1,6 @@
 {
   "productName": "CXBin-Converter",
-  "version": "2.0.0",
+  "version": "2.1.2",
   "identifier": "com.hellbz.cxbin-converter",
   "build": {
     "frontendDist": "../dist",
@@ -24,7 +24,7 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["msi", "nsis", "dmg", "app", "deb", "rpm", "appimage"],
     "category": "DeveloperTool",
     "copyright": "MIT",
     "windows": {

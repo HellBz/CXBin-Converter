@@ -1,6 +1,6 @@
 [package]
 name = "cxbin-converter"
-version = "2.0.0"
+version = "2.1.2"
 description = "Tauri rewrite of the CXBin converter"
 authors = ["Stefan"]
 license = "MIT"
