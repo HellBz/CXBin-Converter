@@ -17,6 +17,14 @@ dist-ssr
 src-tauri/target/
 src-tauri/*.rs.bk
 
+# Generated test files
+*.cxbin
+*.stl
+*.ply
+*.obj
+*.off
+*.mtl
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
