@@ -42,12 +42,15 @@ A powerful Tauri desktop rewrite of the [CXBin-Converter](https://github.com/Hel
 
 ---
 
+## Requirements
+
+- **Windows:** Microsoft Edge WebView2 Runtime is required for the GUI. It is bundled with the installer, but if the app does not start, install WebView2 manually from [Microsoft](https://developer.microsoft.com/microsoft-edge/webview2/).
+
 ## Installation & Start
 
 ```bash
 git clone https://github.com/HellBz/cxbin_converter.git
 cd cxbin_converter
-git checkout tauri-rewrite
 npm install
 npm run tauri:dev
 ```
