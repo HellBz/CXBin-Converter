@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::Write;
 use std::path::Path;
 
+use image::{ImageBuffer, Rgba};
 use quick_xml::events::{BytesEnd, BytesStart, Event};
 use quick_xml::Writer;
 use zip::write::FileOptions;
@@ -19,6 +20,8 @@ impl Exporter for ThreeMFExporter {
         let options: FileOptions<()> = FileOptions::default()
             .compression_method(zip::CompressionMethod::Deflated)
             .compression_level(Some(6));
+
+        let thumbnail = render_thumbnail(mesh, 256, 256);
 
         // [Content_Types].xml
         zip.start_file("[Content_Types].xml", options)?;
@@ -39,6 +42,11 @@ impl Exporter for ThreeMFExporter {
         zip.start_file("3D/_rels/3dmodel.model.rels", options)?;
         zip.write_all(model_rels().as_bytes())?;
 
+        // 3D/Thumbnails/thumbnail.png
+        zip.add_directory("3D/Thumbnails", options)?;
+        zip.start_file("3D/Thumbnails/thumbnail.png", options)?;
+        zip.write_all(&thumbnail)?;
+
         zip.finish()?;
 
         Ok(vec![output_path.to_string_lossy().to_string()])
@@ -50,6 +58,7 @@ fn content_types_xml() -> String {
 <Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
   <Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
   <Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/>
+  <Default Extension="png" ContentType="image/png"/>
 </Types>
 "#
     .to_string()
@@ -59,6 +68,7 @@ fn rels_dot_rels() -> String {
     r#"<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel" Target="/3D/3dmodel.model"/>
+  <Relationship Id="rel1" Type="http://schemas.openxmlformats.org/package/2006/relationships/thumbnail" Target="/3D/Thumbnails/thumbnail.png"/>
 </Relationships>
 "#
     .to_string()
@@ -93,10 +103,7 @@ fn model_xml(mesh: &CxbinMesh) -> String {
         "xmlns:p",
         "http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodelxml",
     ));
-    model.push_attribute((
-        "xml:lang",
-        "en-US",
-    ));
+    model.push_attribute(("xml:lang", "en-US"));
     writer.write_event(Event::Start(model)).unwrap();
 
     // <resources>
@@ -175,4 +182,86 @@ fn model_xml(mesh: &CxbinMesh) -> String {
         .unwrap();
 
     String::from_utf8(writer.into_inner()).unwrap()
+}
+
+/// Render a simple 2D orthographic thumbnail of the mesh into a PNG.
+fn render_thumbnail(mesh: &CxbinMesh, width: u32, height: u32) -> Vec<u8> {
+    let mut img = ImageBuffer::from_pixel(width, height, Rgba([240, 240, 240, 255]));
+    let (min, max) = bounding_box(mesh);
+    let size = [
+        (max[0] - min[0]).max(0.001),
+        (max[1] - min[1]).max(0.001),
+        (max[2] - min[2]).max(0.001),
+    ];
+    let center = [(min[0] + max[0]) / 2.0, (min[1] + max[1]) / 2.0, (min[2] + max[2]) / 2.0];
+    let max_dim = size[0].max(size[1]).max(size[2]);
+    let scale = ((width as f32 - 20.0) / max_dim).min((height as f32 - 20.0) / max_dim);
+
+    // Project to screen: x horizontal, y vertical (flip y), ignore z
+    let project = |v: &[f32; 3]| {
+        let x = (v[0] - center[0]) * scale + (width as f32) / 2.0;
+        let y = (height as f32) / 2.0 - (v[1] - center[1]) * scale;
+        (x as i32, y as i32)
+    };
+
+    // Draw wireframe edges
+    for f in &mesh.faces {
+        let a = project(&mesh.vertices[f[0] as usize]);
+        let b = project(&mesh.vertices[f[1] as usize]);
+        let c = project(&mesh.vertices[f[2] as usize]);
+        draw_line(&mut img, a, b, Rgba([59, 130, 246, 255]));
+        draw_line(&mut img, b, c, Rgba([59, 130, 246, 255]));
+        draw_line(&mut img, c, a, Rgba([59, 130, 246, 255]));
+    }
+
+    let mut out = Vec::new();
+    img.write_to(&mut std::io::Cursor::new(&mut out), image::ImageFormat::Png)
+        .unwrap();
+    out
+}
+
+fn bounding_box(mesh: &CxbinMesh) -> ([f32; 3], [f32; 3]) {
+    let mut min = [f32::MAX; 3];
+    let mut max = [f32::MIN; 3];
+    for v in &mesh.vertices {
+        for i in 0..3 {
+            if v[i] < min[i] {
+                min[i] = v[i];
+            }
+            if v[i] > max[i] {
+                max[i] = v[i];
+            }
+        }
+    }
+    (min, max)
+}
+
+fn draw_line(img: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, p0: (i32, i32), p1: (i32, i32), color: Rgba<u8>) {
+    let (x0, y0) = p0;
+    let (x1, y1) = p1;
+    let dx = (x1 - x0).abs();
+    let dy = (y1 - y0).abs();
+    let sx = if x0 < x1 { 1 } else { -1 };
+    let sy = if y0 < y1 { 1 } else { -1 };
+    let mut err = dx - dy;
+    let mut x = x0;
+    let mut y = y0;
+
+    loop {
+        if x >= 0 && y >= 0 && x < img.width() as i32 && y < img.height() as i32 {
+            img.put_pixel(x as u32, y as u32, color);
+        }
+        if x == x1 && y == y1 {
+            break;
+        }
+        let e2 = 2 * err;
+        if e2 > -dy {
+            err -= dy;
+            x += sx;
+        }
+        if e2 < dx {
+            err += dx;
+            y += sy;
+        }
+    }
 }
