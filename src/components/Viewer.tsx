@@ -27,6 +27,7 @@ export default function Viewer({ file, onClose }: ViewerProps) {
 
     let renderer: THREE.WebGLRenderer | null = null;
     let frameId: number;
+    let handleResize: (() => void) | null = null;
 
     const setup = async () => {
       try {
@@ -38,7 +39,7 @@ export default function Viewer({ file, onClose }: ViewerProps) {
         const height = containerRef.current.clientHeight;
 
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x1f2937);
+        scene.background = new THREE.Color(0x18181b);
 
         const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
         camera.position.set(0, 0, 5);
@@ -111,6 +112,16 @@ export default function Viewer({ file, onClose }: ViewerProps) {
         controls.dampingFactor = 0.05;
         controls.target.set(0, 0, 0);
 
+        handleResize = () => {
+          if (!containerRef.current || !renderer) return;
+          const w = containerRef.current.clientWidth;
+          const h = containerRef.current.clientHeight;
+          camera.aspect = w / h;
+          camera.updateProjectionMatrix();
+          renderer.setSize(w, h);
+        };
+        window.addEventListener("resize", handleResize);
+
         const animate = () => {
           frameId = requestAnimationFrame(animate);
           controls.update();
@@ -125,6 +136,9 @@ export default function Viewer({ file, onClose }: ViewerProps) {
     setup();
 
     return () => {
+      if (handleResize) {
+        window.removeEventListener("resize", handleResize);
+      }
       cancelAnimationFrame(frameId);
       if (renderer?.domElement && renderer.domElement.parentElement) {
         renderer.domElement.parentElement.removeChild(renderer.domElement);
@@ -135,7 +149,7 @@ export default function Viewer({ file, onClose }: ViewerProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6">
-      <div className="flex h-[80vh] w-full max-w-4xl flex-col rounded-lg border bg-card shadow-lg">
+      <div className="flex h-[90vh] w-[95vw] flex-col rounded-lg border bg-card shadow-lg">
         <div className="flex items-center justify-between border-b p-4">
           <div>
             <h2 className="text-lg font-semibold">Vorschau</h2>
