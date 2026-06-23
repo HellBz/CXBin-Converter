@@ -42,9 +42,8 @@ impl Exporter for ThreeMFExporter {
         zip.start_file("3D/_rels/3dmodel.model.rels", options)?;
         zip.write_all(model_rels().as_bytes())?;
 
-        // 3D/Thumbnails/thumbnail.png
-        zip.add_directory("3D/Thumbnails", options)?;
-        zip.start_file("3D/Thumbnails/thumbnail.png", options)?;
+        // thumbnail.png at package root for widest 3MF viewer support
+        zip.start_file("thumbnail.png", options)?;
         zip.write_all(&thumbnail)?;
 
         zip.finish()?;
@@ -68,7 +67,7 @@ fn rels_dot_rels() -> String {
     r#"<?xml version="1.0" encoding="UTF-8"?>
 <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
   <Relationship Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel" Target="/3D/3dmodel.model"/>
-  <Relationship Id="rel1" Type="http://schemas.openxmlformats.org/package/2006/relationships/thumbnail" Target="/3D/Thumbnails/thumbnail.png"/>
+  <Relationship Id="rel1" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/thumbnail" Target="/thumbnail.png"/>
 </Relationships>
 "#
     .to_string()
