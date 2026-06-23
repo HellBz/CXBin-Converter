@@ -1,10 +1,43 @@
 use std::path::Path;
 use std::process;
 
+use clap::Parser;
 use serde::Serialize;
 
 use crate::cxbin::load_cxbin;
-use crate::export::export_mesh;
+use crate::export::{export_mesh, supported_formats};
+
+#[derive(Parser)]
+#[command(name = "cxbin-converter")]
+#[command(about = "Convert Creality CXBin files to common 3D formats")]
+struct CliArgs {
+    /// Input .cxbin file or folder
+    input: String,
+
+    /// Target format (stl, ply, obj, off, 3mf, amf, vrml, x3d)
+    #[arg(short, long, default_value = "stl")]
+    format: String,
+
+    /// Output directory
+    #[arg(short, long)]
+    output: Option<String>,
+
+    /// Output name template. Use {stem} for input filename and {fmt} for format
+    #[arg(long)]
+    output_name: Option<String>,
+
+    /// Recursively convert all .cxbin files in the input folder
+    #[arg(short, long)]
+    recursive: bool,
+
+    /// Print result as JSON instead of plain text
+    #[arg(long)]
+    json: bool,
+
+    /// Include geometry arrays in JSON output
+    #[arg(long)]
+    json_geometry: bool,
+}
 
 #[derive(Serialize)]
 struct CliResult {
@@ -14,6 +47,8 @@ struct CliResult {
     outputs: Vec<String>,
     stats: Stats,
     error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    geometry: Option<GeometryJson>,
 }
 
 #[derive(Serialize)]
@@ -22,61 +57,173 @@ struct Stats {
     faces: usize,
 }
 
+#[derive(Serialize)]
+struct GeometryJson {
+    vertices: Vec<[f32; 3]>,
+    faces: Vec<[i32; 3]>,
+}
+
 /// If command-line arguments are present, run a headless conversion and exit.
 /// This enables dragging a .cxbin file onto the EXE.
 pub fn try_cli_mode() {
-    let args: Vec<String> = std::env::args().collect();
-    if args.len() <= 1 {
+    let raw_args: Vec<String> = std::env::args().collect();
+    if raw_args.len() <= 1 {
         return;
     }
 
-    let input = &args[1];
-    let format = args.get(2).map(|s| s.as_str()).unwrap_or("stl");
+    // Support legacy positional format argument: cxbin-converter.exe file.cxbin ply
+    let args = if raw_args.len() == 3 && !raw_args[2].starts_with('-') {
+        let mut extended = raw_args.clone();
+        extended.insert(2, "--format".to_string());
+        extended
+    } else {
+        raw_args.clone()
+    };
 
-    match run_cli(input, format) {
-        Ok(result) => {
-            println!("{}", serde_json::to_string_pretty(&result).unwrap());
-            process::exit(0);
-        }
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            process::exit(1);
+    let cli = CliArgs::parse_from(args);
+
+    let input_path = Path::new(&cli.input);
+    let results = if input_path.is_dir() {
+        convert_folder(&cli)
+    } else {
+        vec![convert_one(&cli, input_path)]
+    };
+
+    if cli.json {
+        println!("{}", serde_json::to_string_pretty(&results).unwrap());
+    } else {
+        for r in &results {
+            if r.success {
+                println!("✓ {} -> {}", r.input, r.outputs.join(", "));
+            } else {
+                eprintln!(
+                    "✗ {}: {}",
+                    r.input,
+                    r.error.as_deref().unwrap_or("unknown error")
+                );
+            }
         }
     }
+
+    let exit_code = if results.iter().all(|r| r.success) { 0 } else { 1 };
+    process::exit(exit_code);
 }
 
-fn run_cli(input: &str, format: &str) -> anyhow::Result<CliResult> {
-    let input_path = Path::new(input);
-    let mesh = load_cxbin(input_path)?;
+fn convert_folder(cli: &CliArgs) -> Vec<CliResult> {
+    let mut files = Vec::new();
+    let pattern = format!("{}/*.cxbin", cli.input);
+    for entry in glob::glob(&pattern).unwrap_or_else(|_| glob::glob("*.cxbin").unwrap()) {
+        if let Ok(path) = entry {
+            files.push(path);
+        }
+    }
+    if cli.recursive {
+        let pattern = format!("{}/**/*.cxbin", cli.input);
+        let recursive: Vec<_> = glob::glob(&pattern)
+            .unwrap_or_else(|_| glob::glob("*.cxbin").unwrap())
+            .filter_map(|e| e.ok())
+            .collect();
+        for path in recursive {
+            if !files.contains(&path) {
+                files.push(path);
+            }
+        }
+    }
+    files.into_iter().map(|p| convert_one(cli, &p)).collect()
+}
+
+fn convert_one(cli: &CliArgs, input_path: &Path) -> CliResult {
+    let format = cli.format.to_lowercase();
+    if !supported_formats().contains(&format.as_str()) {
+        return CliResult {
+            success: false,
+            input: input_path.to_string_lossy().to_string(),
+            format,
+            outputs: Vec::new(),
+            stats: Stats { vertices: 0, faces: 0 },
+            error: Some(format!("unsupported format: {}", cli.format)),
+            geometry: None,
+        };
+    }
+
+    let mesh = match load_cxbin(input_path) {
+        Ok(m) => m,
+        Err(e) => {
+            return CliResult {
+                success: false,
+                input: input_path.to_string_lossy().to_string(),
+                format,
+                outputs: Vec::new(),
+                stats: Stats { vertices: 0, faces: 0 },
+                error: Some(e.to_string()),
+                geometry: None,
+            }
+        }
+    };
+
     let stem = input_path
         .file_stem()
         .and_then(|s| s.to_str())
         .unwrap_or("out");
-    let parent = input_path
-        .parent()
-        .filter(|p| !p.as_os_str().is_empty())
-        .unwrap_or_else(|| Path::new("."));
+    let parent = cli
+        .output
+        .as_ref()
+        .map(|o| Path::new(o).to_path_buf())
+        .unwrap_or_else(|| {
+            input_path
+                .parent()
+                .filter(|p| !p.as_os_str().is_empty())
+                .unwrap_or_else(|| Path::new("."))
+                .to_path_buf()
+        });
 
-    let format = format.to_lowercase();
+    let output_name = cli
+        .output_name
+        .as_ref()
+        .map(|n| n.replace("{stem}", stem).replace("{fmt}", &format))
+        .unwrap_or_else(|| stem.to_string());
+
     let output_path = if format == "obj" {
-        let out_dir = parent.join(format!("{}_obj", stem));
-        std::fs::create_dir_all(&out_dir)?;
-        out_dir.join(format!("{}.obj", stem))
+        let out_dir = parent.join(format!("{}_obj", output_name));
+        std::fs::create_dir_all(&out_dir).ok();
+        out_dir.join(format!("{}.obj", output_name))
     } else {
-        parent.join(format!("{}.{}", stem, format))
+        parent.join(format!("{}.{}", output_name, format))
     };
 
-    let outputs = export_mesh(&mesh, &format, &output_path)?;
+    let geometry = if cli.json_geometry {
+        Some(GeometryJson {
+            vertices: mesh.vertices.clone(),
+            faces: mesh.faces.clone(),
+        })
+    } else {
+        None
+    };
 
-    Ok(CliResult {
-        success: true,
-        input: input.to_string(),
-        format,
-        outputs,
-        stats: Stats {
-            vertices: mesh.vertex_count(),
-            faces: mesh.face_count(),
+    match export_mesh(&mesh, &format, &output_path) {
+        Ok(outputs) => CliResult {
+            success: true,
+            input: input_path.to_string_lossy().to_string(),
+            format,
+            outputs,
+            stats: Stats {
+                vertices: mesh.vertex_count(),
+                faces: mesh.face_count(),
+            },
+            error: None,
+            geometry,
         },
-        error: None,
-    })
+        Err(e) => CliResult {
+            success: false,
+            input: input_path.to_string_lossy().to_string(),
+            format,
+            outputs: Vec::new(),
+            stats: Stats {
+                vertices: mesh.vertex_count(),
+                faces: mesh.face_count(),
+            },
+            error: Some(e.to_string()),
+            geometry,
+        },
+    }
 }
