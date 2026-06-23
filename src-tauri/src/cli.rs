@@ -37,6 +37,10 @@ struct CliArgs {
     /// Include geometry arrays in JSON output
     #[arg(long)]
     json_geometry: bool,
+
+    /// Print all supported formats and exit
+    #[arg(long)]
+    list_formats: bool,
 }
 
 #[derive(Serialize)]
@@ -81,6 +85,19 @@ pub fn try_cli_mode() {
     };
 
     let cli = CliArgs::parse_from(args);
+
+    if cli.list_formats {
+        let formats = supported_formats();
+        if cli.json {
+            println!("{}", serde_json::to_string_pretty(&formats).unwrap());
+        } else {
+            println!("Unterstützte Formate:");
+            for f in formats {
+                println!("  - {}", f);
+            }
+        }
+        process::exit(0);
+    }
 
     let input_path = Path::new(&cli.input);
     let results = if input_path.is_dir() {
