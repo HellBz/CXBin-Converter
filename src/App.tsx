@@ -14,6 +14,8 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/components/ThemeProvider";
+import { useI18n } from "@/i18n";
+import { LanguageToggle } from "@/components/LanguageToggle";
 import {
   Select,
   SelectContent,
@@ -39,18 +41,28 @@ interface ConversionResult {
 
 const FORMATS = ["stl", "ply", "plyb", "xyz", "obj", "off", "3mf", "amf", "vrml", "x3d", "dae", "glb", "gltf", "vtk", "msh", "dxf", "fbx", "usdz"];
 
-function ThemeToggle() {
+function HeaderToggles() {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useI18n();
   return (
-    <Button variant="outline" size="icon" onClick={toggleTheme} title={`Theme: ${theme}`}>
-      {theme === "light" && <Sun className="h-4 w-4" />}
-      {theme === "dark" && <Moon className="h-4 w-4" />}
-      {theme === "system" && <Monitor className="h-4 w-4" />}
-    </Button>
+    <div className="flex items-center gap-2">
+      <LanguageToggle />
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={toggleTheme}
+        title={t("theme.title", { theme })}
+      >
+        {theme === "light" && <Sun className="h-4 w-4" />}
+        {theme === "dark" && <Moon className="h-4 w-4" />}
+        {theme === "system" && <Monitor className="h-4 w-4" />}
+      </Button>
+    </div>
   );
 }
 
 export default function App() {
+  const { t } = useI18n();
   const [files, setFiles] = useState<string[]>([]);
   const [format, setFormat] = useState("stl");
   const [running, setRunning] = useState(false);
@@ -123,28 +135,28 @@ export default function App() {
             <h1 className="text-3xl font-bold tracking-tight">
               <span className="text-primary">CX</span>Bin Converter
             </h1>
-            <ThemeToggle />
+            <HeaderToggles />
           </div>
           <p className="text-muted-foreground">
-            Tauri Desktop Rewrite basierend auf der Creality CXBin-Referenz
+            {t("app.subtitle")}
           </p>
         </div>
 
         <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-card p-10 text-center hover:border-primary/50 transition-colors">
           <FileUp className="mb-3 h-10 w-10 text-muted-foreground" />
           <p className="text-sm font-medium">
-            .cxbin-Dateien hierher ziehen oder über den Button auswählen
+            {t("dropzone.hint")}
           </p>
           <Button variant="outline" className="mt-4" onClick={browseFiles}>
             <FolderOpen className="mr-2 h-4 w-4" />
-            Dateien auswählen
+            {t("dropzone.selectFiles")}
           </Button>
         </div>
 
         {files.length > 0 && (
           <div className="rounded-lg border bg-card p-4">
             <div className="mb-2 flex items-center justify-between">
-              <span className="font-medium">Dateien ({files.length})</span>
+              <span className="font-medium">{t("files.title", { count: String(files.length) })}</span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -154,7 +166,7 @@ export default function App() {
                 }}
               >
                 <Trash2 className="mr-1 h-4 w-4" />
-                Leeren
+                {t("files.clear")}
               </Button>
             </div>
             <ul className="max-h-40 space-y-1 overflow-y-auto text-sm text-muted-foreground">
@@ -167,7 +179,7 @@ export default function App() {
                     onClick={() => setPreviewFile(f)}
                   >
                     <Eye className="mr-1 h-3 w-3" />
-                    Vorschau
+                    {t("files.preview")}
                   </Button>
                 </li>
               ))}
@@ -178,7 +190,7 @@ export default function App() {
         <div className="flex items-center gap-4">
           <Select value={format} onValueChange={setFormat}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Format" />
+              <SelectValue placeholder={t("format.placeholder")} />
             </SelectTrigger>
             <SelectContent>
               {FORMATS.map((f) => (
@@ -191,7 +203,7 @@ export default function App() {
 
           <Button onClick={convert} disabled={files.length === 0 || running}>
             {running && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Konvertieren
+            {t("convert")}
           </Button>
         </div>
 
@@ -207,7 +219,7 @@ export default function App() {
                 }`}
               >
                 <div className="font-medium">
-                  {r.success ? "Erfolg" : "Fehler"}
+                  {r.success ? t("result.success") : t("result.error")}
                 </div>
                 {r.input && (
                   <div className="text-sm text-muted-foreground truncate">
@@ -216,9 +228,9 @@ export default function App() {
                 )}
                 {r.success && r.stats && (
                   <div className="mt-2 text-sm">
-                    Vertices: {r.stats.vertices}, Faces: {r.stats.faces}
+                    {t("result.vertices")}: {r.stats.vertices}, {t("result.faces")}: {r.stats.faces}
                     <br />
-                    Ausgabe: {r.outputs?.join(", ")}
+                    {t("result.output")}: {r.outputs?.join(", ")}
                   </div>
                 )}
                 {!r.success && r.error && (

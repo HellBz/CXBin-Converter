@@ -4,6 +4,7 @@ import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import { invoke } from "@tauri-apps/api/core";
 import { Button } from "@/components/ui/button";
 import { X } from "lucide-react";
+import { useI18n } from "@/i18n";
 
 interface GeometryData {
   vertices: [number, number, number][];
@@ -18,6 +19,7 @@ interface ViewerProps {
 }
 
 export default function Viewer({ file, onClose }: ViewerProps) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const initializedRef = useRef(false);
 
@@ -154,7 +156,7 @@ export default function Viewer({ file, onClose }: ViewerProps) {
       <div className="flex h-[90vh] w-[95vw] flex-col rounded-lg border bg-card shadow-lg">
         <div className="flex items-center justify-between border-b p-4">
           <div>
-            <h2 className="text-lg font-semibold">Vorschau</h2>
+            <h2 className="text-lg font-semibold">{t("viewer.title")}</h2>
             <p className="text-sm text-muted-foreground truncate">{file}</p>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose}>
